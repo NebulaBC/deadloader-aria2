@@ -1,7 +1,30 @@
 #!/bin/bash
 # Arguments - URL
-URL2=$(curl $1 | grep m3u | cut -d \" -f 16)
-FILELIST=$(wget -qO- $URL2) 
-DLDIR=$(echo $FILELIST | cut -d \/ -f 5)
-mkdir -p $DLDIR 
-echo $FILELIST | xargs -n 1 -P 10 wget -P $DLDIR -c 
+#Download full webpage
+raw=$(curl $1)
+#Get playlist file url using >VBR< title and cut
+playlist="http://archive.org"$(echo "$raw" | grep ">VBR<" | cut -d \" -f 2)
+#Get the performance name using cut and tail
+name=$(echo "$raw" | grep "itemprop=\"name\"" | cut -d \< -f 2 | cut -d \> -f 2 | tail -1)
+#Replace any slashes with dashes
+name=$(echo "$name" | sed 's#/#-#g')
+#Get titles using cut then turn into array
+titles=$(echo "$raw" | grep "itemprop=\"name\"" | cut -d \" -f 4)
+#Replace any slashes with dashes
+titles=$(echo "$titles" | sed 's#/#-#g')
+readarray -t titles <<<"$titles"
+#Gets the list of all files to download from playlist file
+files=$(wget -qO- $playlist)
+#Makes a directory named after the performance name
+mkdir -p "$name"
+#Gets all files from performance and opens up one process for every file
+echo "$files" | xargs -n 1 -P ${#titles[@]} wget -P "$name" -c
+#Renames all riles to appropriate track name
+i=0
+for file in $(ls "$name")
+do
+  old="$name/$file"
+  new="$name/${titles[$i]}.mp3"
+  mv "$old" "$new"
+  let i+=1
+done
