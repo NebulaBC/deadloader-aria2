@@ -15,6 +15,8 @@ titles=$(echo "$titles" | sed 's#/#-#g')
 readarray -t titles <<<"$titles"
 #Gets the list of all files to download from playlist file
 files=$(wget -qO- $playlist)
+#Gets the year information from html tags in the webpage
+year=$(echo "$raw" | grep "data-year" | tail -1 | cut -d \" -f 2)
 #Makes a directory named after the performance name
 mkdir -p "$name"
 #Gets all files from performance and opens up one process for every file
@@ -23,8 +25,9 @@ echo "$files" | xargs -n 1 -P ${#titles[@]} wget -P "$name" -c
 i=0
 for file in $(ls "$name")
 do
-  old="$name/$file"
-  new="$name/${titles[$i]}.mp3"
-  mv "$old" "$new"
+	old="$name/$file"
+	new="$name/$((i + 1)) - ${titles[$i]}.mp3"
+	mv "$old" "$new"
+	id3v2 -y "$year" "$new"
   let i+=1
 done
