@@ -9,7 +9,7 @@ name=$(echo "$raw" | grep "itemprop=\"name\"" | cut -d \< -f 2 | cut -d \> -f 2 
 #Replace any slashes with dashes
 name=$(echo "$name" | sed 's#/#-#g')
 #Get titles using cut then turn into array
-titles=$(echo "$raw" | grep "itemprop=\"name\"" | cut -d \" -f 4)
+titles=$(echo "$raw" | grep "\"title\":" | grep "mp3" | cut -d \" -f 4 | cut -d \  -f 2-100)
 #Replace any slashes with dashes
 titles=$(echo "$titles" | sed 's#/#-#g')
 readarray -t titles <<<"$titles"
@@ -27,7 +27,8 @@ for file in $(ls "$name")
 do
 	old="$name/$file"
 	new="$name/$((i + 1)) - ${titles[$i]}.mp3"
+	echo "Processed $new"
 	mv "$old" "$new"
 	id3v2 -y "$year" "$new"
-  let i+=1
+	let i+=1
 done
