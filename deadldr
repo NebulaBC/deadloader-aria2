@@ -10,5 +10,5 @@ readarray -t titles <<<"$titles"
 files=$(wget -qO- $playlist)
 year=$(echo "$raw" | grep "data-year" | tail -1 | cut -d \" -f 2)
 mkdir -p "$name"
-echo "$files" | xargs -n 1 -P ${#titles[@]} wget2 --progress=bar --max-threads 8 -P "$name" -c
+echo "$files" | xargs -n 1 -P ${#titles[@]} wget2 --progress=bar --max-threads 8 -P "$name" -c # Turn up --max-threads if you have better internet
 # Rename files with EasyTAG (Reccomended)
